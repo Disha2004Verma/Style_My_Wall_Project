@@ -1,0 +1,187 @@
+<!-- <body></body> -->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+	<title>Model Viewer Template</title>
+	<meta charset="utf-8">
+	<meta name="description" content="Model Viewer Template">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+		body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+			font-family: 'Orbitron', sans-serif;
+			color: #ffffff;
+			/* overflow: hidden; */
+		}
+
+		model-viewer {
+			width: 80%;
+			height: 70%;
+			min-height: 70%;
+			border: 2px solid #ffffff;
+			border-radius: 15px;
+			box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+			background-color: #0f0c29;
+		}
+
+		.progress-bar {
+			display: block;
+			width: 50%;
+			height: 8px;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			border-radius: 10px;
+			background: rgba(255, 255, 255, 0.3);
+			overflow: hidden;
+		}
+
+		.progress-bar.hide {
+			visibility: hidden;
+			transition: visibility 0.3s;
+		}
+
+		.update-bar {
+			background: #03a9f4;
+			width: 0%;
+			height: 100%;
+			border-radius: 10px;
+			transition: width 0.3s;
+		}
+
+		#ar-button {
+			background: rgba(255, 255, 255, 0.2);
+			color: #ffffff;
+			border: 2px solid #03a9f4;
+			border-radius: 20px;
+			padding: 10px 20px;
+			position: absolute;
+			left: 50%;
+			bottom: 10%;
+			transform: translateX(-50%);
+			font-size: 16px;
+			cursor: pointer;
+			transition: background 0.3s, border-color 0.3s;
+		}
+
+		#ar-button:hover {
+			background: #03a9f4;
+			border-color: #ffffff;
+		}
+
+		#ar-button:focus {
+			outline: none;
+		}
+
+		#ar-prompt {
+			position: absolute;
+			left: 50%;
+			bottom: 60px;
+			transform: translateX(-50%);
+			display: none;
+		}
+
+		model-viewer[ar-status="session-started"]>#ar-prompt {
+			display: block;
+		}
+
+		#ar-prompt>img {
+			width: 100px;
+			animation: rotate 4s linear infinite;
+		}
+
+		@keyframes rotate {
+			from {
+				transform: rotate(0deg);
+			}
+
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		#fileInput {
+			position: absolute;
+			top: 20px;
+			left: 20px;
+			z-index: 10;
+			background: rgba(255, 255, 255, 0.2);
+			color: #ffffff;
+			border: 2px solid #03a9f4;
+			border-radius: 10px;
+			padding: 10px;
+			cursor: pointer;
+			transition: background 0.3s, border-color 0.3s;
+		}
+
+		#fileInput:hover {
+			background: #03a9f4;
+			border-color: #ffffff;
+		}
+	</style>
+</head>
+
+<body>
+
+	<model-viewer id="arViewer" ar ar-placement="wall" camera-controls tone-mapping="neutral"
+		poster="https://media.tenor.com/U_9hMTdrPjQAAAAi/codemodeon-vr.gif" shadow-intensity="1" autoplay>
+		<div class="progress-bar hide" slot="progress-bar">
+			<div class="update-bar"></div>
+		</div>
+		<button slot="ar-button" id="ar-button">
+			View in your space
+		</button>
+		<div id="ar-prompt">
+			<img src="https://media.tenor.com/U_9hMTdrPjQAAAAi/codemodeon-vr.gif">
+		</div>
+	</model-viewer>
+
+
+	<input type="file" id="fileInput" accept=".glb,.gltf">
+
+
+	<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+	<script>
+		// Handles loading the events for <model-viewer>'s slotted progress bar
+		const onProgress = (event) => {
+			const progressBar = event.target.querySelector('.progress-bar');
+			const updatingBar = event.target.querySelector('.update-bar');
+			updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
+			if (event.detail.totalProgress === 1) {
+				progressBar.classList.add('hide');
+				event.target.removeEventListener('progress', onProgress);
+			} else {
+				progressBar.classList.remove('hide');
+			}
+		};
+		document.querySelector('model-viewer').addEventListener('progress', onProgress);
+
+		// Handle file input change event
+		document.getElementById('fileInput').addEventListener('change', (event) => {
+			const file = event.target.files[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = function (e) {
+					const url = URL.createObjectURL(new Blob([e.target.result], {type: file.type}));
+					document.getElementById('arViewer').src = url;
+				};
+				reader.readAsArrayBuffer(file);
+			}
+		});
+	</script>
+</body>
+
+</html>
